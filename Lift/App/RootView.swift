@@ -11,7 +11,7 @@ struct RootView: View {
             switch ui.screen {
             case .home: HomeView()
             case .session: SessionView()
-            case .history: Text("history")
+            case .history: HistoryView()
             case .stats: Text("stats")
             case .settings: Text("settings")
             }
