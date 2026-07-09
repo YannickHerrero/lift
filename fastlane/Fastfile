@@ -1,0 +1,64 @@
+default_platform(:ios)
+
+APP_ID = "com.yannickherrero.lift"
+
+platform :ios do
+  desc "Build and upload to TestFlight (needs ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_PATH)"
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: File.expand_path(ENV.fetch("ASC_KEY_PATH"))
+    )
+
+    # Register the bundle id on the developer portal (no-op if it exists).
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      filepath: File.expand_path(ENV.fetch("ASC_KEY_PATH"))
+    )
+    if Spaceship::ConnectAPI::BundleId.find(APP_ID).nil?
+      UI.message("Registering bundle id #{APP_ID}")
+      Spaceship::ConnectAPI::BundleId.create(name: "lift", identifier: APP_ID)
+    end
+
+    # App records can't be created with API-key auth — one-time manual step.
+    if Spaceship::ConnectAPI::App.find(APP_ID).nil?
+      UI.user_error!(<<~MSG)
+        No App Store Connect app record for #{APP_ID}.
+        Create it once at https://appstoreconnect.apple.com/apps
+        (＋ → New App → iOS, bundle id #{APP_ID}), then re-run `fastlane ios beta`.
+      MSG
+    end
+
+    sh("cd .. && xcodegen generate")
+
+    get_certificates(type: "distribution", api_key: api_key)
+    get_provisioning_profile(api_key: api_key)
+
+    update_code_signing_settings(
+      path: "Lift.xcodeproj",
+      use_automatic_signing: false,
+      team_id: ENV.fetch("TEAM_ID"),
+      code_sign_identity: "Apple Distribution",
+      profile_name: lane_context[SharedValues::SIGH_NAME],
+      targets: ["Lift"]
+    )
+
+    build_number = begin
+      latest_testflight_build_number(api_key: api_key, app_identifier: APP_ID) + 1
+    rescue StandardError
+      1
+    end
+
+    build_app(
+      project: "Lift.xcodeproj",
+      scheme: "Lift",
+      export_method: "app-store",
+      output_directory: "fastlane/builds",
+      xcargs: "CURRENT_PROJECT_VERSION=#{build_number}"
+    )
+
+    upload_to_testflight(api_key: api_key, skip_waiting_for_build_processing: true)
+  end
+end

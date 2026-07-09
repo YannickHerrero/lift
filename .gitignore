@@ -7,3 +7,14 @@ build/
 *.dSYM.zip
 *.dSYM
 Lift.xcodeproj/
+
+# secrets & fastlane artifacts
+.env
+fastlane/.env
+fastlane/report.xml
+fastlane/builds/
+*.mobileprovision
+*.p8
+*.p12
+*.cer
+*.certSigningRequest
