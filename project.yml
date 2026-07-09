@@ -13,7 +13,7 @@ settings:
     INFOPLIST_KEY_UILaunchScreen_Generation: YES
     INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
     INFOPLIST_KEY_UIUserInterfaceStyle: Light
-    CODE_SIGNING_ALLOWED: "NO"
+    DEVELOPMENT_TEAM: KY6RHJR4LZ
 targets:
   Lift:
     type: application
