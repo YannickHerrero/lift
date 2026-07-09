@@ -34,7 +34,7 @@ ctx.drawRadialGradient(bgGrad,
     options: [])
 
 // ── barbell geometry (y up; visual center slightly above middle) ──
-let cy = size * 0.545
+let cy = size * 0.5
 let barW: CGFloat = 700, barH: CGFloat = 54
 let plateW: CGFloat = 100, plateH: CGFloat = 330
 let collarW: CGFloat = 58, collarH: CGFloat = 200
@@ -108,20 +108,6 @@ glass(collarL, radius: collarW / 2, body: 0.13)
 glass(collarR, radius: collarW / 2, body: 0.13)
 glass(plateL, radius: 44, body: 0.16)
 glass(plateR, radius: 44, body: 0.16)
-
-// ── wordmark, small and quiet under the barbell ──
-let text = "lift." as NSString
-let font = NSFont(name: "Helvetica", size: 92) ?? NSFont.systemFont(ofSize: 92)
-let attrs: [NSAttributedString.Key: Any] = [
-    .font: font,
-    .foregroundColor: NSColor(cgColor: color(0xFAFAF8, 0.92))!,
-    .kern: 1.8,
-]
-let tSize = text.size(withAttributes: attrs)
-NSGraphicsContext.saveGraphicsState()
-NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
-text.draw(at: CGPoint(x: (size - tSize.width) / 2, y: size * 0.16), withAttributes: attrs)
-NSGraphicsContext.restoreGraphicsState()
 
 // ── write png ──
 let image = ctx.makeImage()!
