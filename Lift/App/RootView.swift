@@ -10,7 +10,7 @@ struct RootView: View {
             theme.bg.ignoresSafeArea()
             switch ui.screen {
             case .home: HomeView()
-            case .session: Text("session")
+            case .session: SessionView()
             case .history: Text("history")
             case .stats: Text("stats")
             case .settings: Text("settings")
