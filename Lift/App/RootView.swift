@@ -9,7 +9,7 @@ struct RootView: View {
         ZStack {
             theme.bg.ignoresSafeArea()
             switch ui.screen {
-            case .home: Text("home")
+            case .home: HomeView()
             case .session: Text("session")
             case .history: Text("history")
             case .stats: Text("stats")
