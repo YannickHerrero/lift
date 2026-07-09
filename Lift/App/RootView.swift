@@ -15,6 +15,7 @@ struct RootView: View {
             case .stats: Text("stats")
             case .settings: Text("settings")
             }
+            SheetHost()
         }
         .environmentObject(store)
         .environmentObject(ui)
