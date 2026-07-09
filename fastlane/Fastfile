@@ -3,15 +3,20 @@ default_platform(:ios)
 APP_ID = "com.yannickherrero.lift"
 
 platform :ios do
-  desc "Build and upload to TestFlight (needs ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_PATH)"
-  lane :beta do
-    api_key = app_store_connect_api_key(
+  private_lane :asc_api_key do
+    app_store_connect_api_key(
       key_id: ENV.fetch("ASC_KEY_ID"),
       issuer_id: ENV.fetch("ASC_ISSUER_ID"),
       key_filepath: File.expand_path(ENV.fetch("ASC_KEY_PATH"))
     )
+  end
 
-    # Register the bundle id on the developer portal (no-op if it exists).
+  # Registers the bundle id (no-op if it exists) and produces a signed
+  # App Store .ipa in fastlane/builds.
+  desc "Create signing assets and build a signed ipa"
+  lane :build do |options|
+    api_key = asc_api_key
+
     Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
       key_id: ENV.fetch("ASC_KEY_ID"),
       issuer_id: ENV.fetch("ASC_ISSUER_ID"),
@@ -19,21 +24,12 @@ platform :ios do
     )
     if Spaceship::ConnectAPI::BundleId.find(APP_ID).nil?
       UI.message("Registering bundle id #{APP_ID}")
-      Spaceship::ConnectAPI::BundleId.create(name: "lift", identifier: APP_ID)
-    end
-
-    # App records can't be created with API-key auth — one-time manual step.
-    if Spaceship::ConnectAPI::App.find(APP_ID).nil?
-      UI.user_error!(<<~MSG)
-        No App Store Connect app record for #{APP_ID}.
-        Create it once at https://appstoreconnect.apple.com/apps
-        (＋ → New App → iOS, bundle id #{APP_ID}), then re-run `fastlane ios beta`.
-      MSG
+      Spaceship::ConnectAPI::BundleId.create(name: "lift", identifier: APP_ID, platform: "IOS")
     end
 
     sh("cd .. && xcodegen generate")
 
-    get_certificates(type: "distribution", api_key: api_key)
+    get_certificates(development: false, api_key: api_key)
     get_provisioning_profile(api_key: api_key)
 
     update_code_signing_settings(
@@ -45,19 +41,40 @@ platform :ios do
       targets: ["Lift"]
     )
 
+    build_app(
+      project: "Lift.xcodeproj",
+      scheme: "Lift",
+      export_method: "app-store",
+      output_directory: "fastlane/builds",
+      xcargs: "CURRENT_PROJECT_VERSION=#{options[:build_number] || 1}"
+    )
+  end
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    api_key = asc_api_key
+
+    # App records can't be created with API-key auth — one-time manual step.
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      filepath: File.expand_path(ENV.fetch("ASC_KEY_PATH"))
+    )
+    if Spaceship::ConnectAPI::App.find(APP_ID).nil?
+      UI.user_error!(<<~MSG)
+        No App Store Connect app record for #{APP_ID}.
+        Create it once at https://appstoreconnect.apple.com/apps
+        (＋ → New App → iOS, bundle id #{APP_ID}), then re-run `fastlane ios beta`.
+      MSG
+    end
+
     build_number = begin
       latest_testflight_build_number(api_key: api_key, app_identifier: APP_ID) + 1
     rescue StandardError
       1
     end
 
-    build_app(
-      project: "Lift.xcodeproj",
-      scheme: "Lift",
-      export_method: "app-store",
-      output_directory: "fastlane/builds",
-      xcargs: "CURRENT_PROJECT_VERSION=#{build_number}"
-    )
+    build(build_number: build_number)
 
     upload_to_testflight(api_key: api_key, skip_waiting_for_build_processing: true)
   end
