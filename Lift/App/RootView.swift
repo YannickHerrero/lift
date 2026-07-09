@@ -12,7 +12,7 @@ struct RootView: View {
             case .home: HomeView()
             case .session: SessionView()
             case .history: HistoryView()
-            case .stats: Text("stats")
+            case .stats: StatsView()
             case .settings: Text("settings")
             }
             SheetHost()
