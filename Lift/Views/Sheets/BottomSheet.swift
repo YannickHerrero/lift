@@ -44,7 +44,9 @@ struct SheetHost: View {
                     switch sheet {
                     case .addExercise:
                         AddExerciseSheet()
-                    case .picker, .lastTime, .day:
+                    case .picker(let entryIndex, let field):
+                        PickerSheet(entryIndex: entryIndex, field: field)
+                    case .lastTime, .day:
                         EmptyView()
                     }
                 }
