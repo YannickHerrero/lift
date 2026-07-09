@@ -46,8 +46,10 @@ struct SheetHost: View {
                         AddExerciseSheet()
                     case .picker(let entryIndex, let field):
                         PickerSheet(entryIndex: entryIndex, field: field)
-                    case .lastTime, .day:
-                        EmptyView()
+                    case .lastTime(let exId):
+                        LastTimeSheet(exId: exId)
+                    case .day(let dateKey):
+                        DayRecapSheet(dateKey: dateKey)
                     }
                 }
             }
