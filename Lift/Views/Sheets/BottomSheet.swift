@@ -42,7 +42,9 @@ struct SheetHost: View {
             if let sheet = ui.sheet {
                 BottomSheet(onClose: { ui.sheet = nil }) {
                     switch sheet {
-                    case .picker, .addExercise, .lastTime, .day:
+                    case .addExercise:
+                        AddExerciseSheet()
+                    case .picker, .lastTime, .day:
                         EmptyView()
                     }
                 }
