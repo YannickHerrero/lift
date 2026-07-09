@@ -24,6 +24,9 @@ struct RootView: View {
         .foregroundStyle(theme.ink)
         .preferredColorScheme(store.theme == .dark ? .dark : .light)
         .onAppear {
+            #if DEBUG
+            if LiftStore.shouldSeedDemo { store.seedDemoData() }
+            #endif
             // A session left running survives relaunch.
             if store.active != nil { ui.screen = .session }
         }
