@@ -5,10 +5,17 @@ struct AddExerciseSheet: View {
     @EnvironmentObject private var ui: UIState
     @Environment(\.theme) private var theme
     @State private var search = ""
+    @State private var showRemoveConfirmation = false
+
+    let entryIndex: Int?
+
+    init(entryIndex: Int? = nil) {
+        self.entryIndex = entryIndex
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("add exercise")
+            Text(entryIndex == nil ? "add exercise" : "edit exercise")
                 .font(.lift(15))
                 .padding(.top, 22)
 
@@ -35,16 +42,31 @@ struct AddExerciseSheet: View {
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 let ex = store.createExercise(named: query)
-                                store.addEntry(exId: ex.id)
-                                ui.sheet = nil
+                                select(ex)
                             }
                     }
                 }
             }
             .frame(maxHeight: 300)
             .padding(.top, 8)
+
+            if entryIndex != nil {
+                Text("remove exercise")
+                    .font(.lift(13))
+                    .foregroundStyle(theme.faint)
+                    .underlined(theme.faint)
+                    .padding(.top, 18)
+                    .contentShape(Rectangle())
+                    .onTapGesture(perform: requestRemoval)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .alert("remove exercise?", isPresented: $showRemoveConfirmation) {
+            Button("cancel", role: .cancel) {}
+            Button("remove", role: .destructive, action: remove)
+        } message: {
+            Text("its logged sets will be removed from this session.")
+        }
     }
 
     private func optionRow(_ ex: Exercise) -> some View {
@@ -60,10 +82,7 @@ struct AddExerciseSheet: View {
         .padding(.horizontal, 2)
         .overlay(alignment: .bottom) { theme.line.frame(height: 1) }
         .contentShape(Rectangle())
-        .onTapGesture {
-            store.addEntry(exId: ex.id)
-            ui.sheet = nil
-        }
+        .onTapGesture { select(ex) }
     }
 
     private var query: String {
@@ -79,9 +98,38 @@ struct AddExerciseSheet: View {
     }
 
     private func meta(_ ex: Exercise) -> String {
+        if let entryIndex,
+           store.active?.entries[safe: entryIndex]?.exId == ex.id {
+            return "current"
+        }
         guard let last = store.lastEntries(exId: ex.id, limit: 1).first?.sets.last else {
             return "new"
         }
         return "last: \(Format.kg(last.kg)) kg × \(last.reps)"
+    }
+
+    private func select(_ ex: Exercise) {
+        if let entryIndex {
+            store.replaceEntry(entryIndex, with: ex.id)
+        } else {
+            store.addEntry(exId: ex.id)
+        }
+        ui.sheet = nil
+    }
+
+    private func requestRemoval() {
+        guard let entryIndex,
+              let entry = store.active?.entries[safe: entryIndex] else { return }
+        if entry.sets.isEmpty {
+            remove()
+        } else {
+            showRemoveConfirmation = true
+        }
+    }
+
+    private func remove() {
+        guard let entryIndex else { return }
+        store.removeEntry(entryIndex)
+        ui.sheet = nil
     }
 }

@@ -12,6 +12,7 @@ enum PickerField {
 enum ActiveSheet: Equatable {
     case picker(entryIndex: Int, field: PickerField)
     case addExercise
+    case editExercise(entryIndex: Int)
     case lastTime(exId: String)
     case day(dateKey: String)
 }

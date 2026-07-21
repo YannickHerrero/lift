@@ -88,6 +88,22 @@ extension LiftStore {
         saveActive()
     }
 
+    func replaceEntry(_ i: Int, with exId: String, at date: Date = Date()) {
+        guard var act = active, act.entries.indices.contains(i) else { return }
+        act.entries[i].exId = exId
+        act.recordActivity(at: date)
+        active = act
+        saveActive()
+    }
+
+    func removeEntry(_ i: Int, at date: Date = Date()) {
+        guard var act = active, act.entries.indices.contains(i) else { return }
+        act.entries.remove(at: i)
+        act.recordActivity(at: date)
+        active = act
+        saveActive()
+    }
+
     func sessionElapsed(at date: Date) -> TimeInterval {
         active?.elapsed(at: date) ?? 0
     }

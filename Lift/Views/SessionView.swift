@@ -61,14 +61,23 @@ struct SessionView: View {
                 Text(store.exerciseName(entry.exId))
                     .font(.lift(26))
                     .tracking(-0.52)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
                 Spacer()
-                if !store.lastEntries(exId: entry.exId, limit: 1).isEmpty {
-                    Text("last time →")
-                        .font(.lift(12))
-                        .foregroundStyle(theme.faint)
-                        .padding(.vertical, 4)
-                        .onTapGesture { ui.sheet = .lastTime(exId: entry.exId) }
-                }
+                Text("edit")
+                    .font(.lift(12))
+                    .foregroundStyle(theme.faint)
+                    .underlined(theme.faint)
+                    .onTapGesture { ui.sheet = .editExercise(entryIndex: i) }
+            }
+
+            if !store.lastEntries(exId: entry.exId, limit: 1).isEmpty {
+                Text("last time →")
+                    .font(.lift(12))
+                    .foregroundStyle(theme.faint)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.top, 6)
+                    .onTapGesture { ui.sheet = .lastTime(exId: entry.exId) }
             }
 
             VStack(alignment: .leading, spacing: 0) {

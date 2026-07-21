@@ -41,6 +41,7 @@ enum DebugLaunch {
         if let s = value(after: "-sheet") {
             switch s {
             case "addex": ui.sheet = .addExercise
+            case "edit-exercise": ui.sheet = .editExercise(entryIndex: 0)
             case "picker-kg": ui.sheet = .picker(entryIndex: 0, field: .kg)
             case "picker-reps": ui.sheet = .picker(entryIndex: 0, field: .reps)
             case "last": ui.sheet = .lastTime(exId: "e1")
