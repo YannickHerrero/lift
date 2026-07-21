@@ -14,7 +14,7 @@ struct SessionView: View {
     private func content(now: Date) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline) {
-                Text("← session · \(elapsed(now))")
+                Text("← session · \(elapsed(now))\(store.isSessionPaused(at: now) ? " · paused" : "")")
                     .font(.lift(13))
                     .foregroundStyle(theme.faint)
                     .onTapGesture { ui.go(.home) }
@@ -165,8 +165,7 @@ struct SessionView: View {
     }
 
     private func elapsed(_ now: Date) -> String {
-        guard let act = store.active else { return "0:00" }
-        return Format.clock(now.timeIntervalSince(act.startedAt))
+        Format.clock(store.sessionElapsed(at: now))
     }
 
     private func restLabel(_ now: Date) -> String {

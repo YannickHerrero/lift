@@ -37,6 +37,8 @@ struct Prefs: Codable, Equatable {
 
 /// An in-progress session. Persisted separately so it survives relaunch.
 struct ActiveSession: Codable, Equatable {
+    static let inactivityLimit: TimeInterval = 15 * 60
+
     struct Entry: Codable, Equatable {
         var exId: String
         var sets: [WorkoutSet]
@@ -48,6 +50,41 @@ struct ActiveSession: Codable, Equatable {
     var startedAt: Date
     var entries: [Entry]
     var restStart: Date?
+    /// Optional so active sessions saved by older app versions still decode.
+    var lastActivityAt: Date?
+    /// Time beyond an inactivity deadline, excluded from the session duration.
+    var pausedDuration: TimeInterval?
+
+    init(startedAt: Date, entries: [Entry], restStart: Date?,
+         lastActivityAt: Date? = nil, pausedDuration: TimeInterval? = 0) {
+        self.startedAt = startedAt
+        self.entries = entries
+        self.restStart = restStart
+        self.lastActivityAt = lastActivityAt
+        self.pausedDuration = pausedDuration
+    }
+
+    func elapsed(at date: Date) -> TimeInterval {
+        let activity = lastActivityAt ?? startedAt
+        let deadline = activity.addingTimeInterval(Self.inactivityLimit)
+        let end = min(date, deadline)
+        return max(0, end.timeIntervalSince(startedAt) - (pausedDuration ?? 0))
+    }
+
+    func isPaused(at date: Date) -> Bool {
+        date >= (lastActivityAt ?? startedAt).addingTimeInterval(Self.inactivityLimit)
+    }
+
+    mutating func recordActivity(at date: Date) {
+        let previousActivity = lastActivityAt ?? startedAt
+        let deadline = previousActivity.addingTimeInterval(Self.inactivityLimit)
+        if date > deadline {
+            pausedDuration = (pausedDuration ?? 0) + date.timeIntervalSince(deadline)
+        }
+        if date > previousActivity {
+            lastActivityAt = date
+        }
+    }
 }
 
 enum DayKey {
