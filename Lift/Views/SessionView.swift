@@ -75,7 +75,11 @@ struct SessionView: View {
                 ForEach(Array(entry.sets.enumerated()), id: \.offset) { si, set in
                     doneSetRow(i, si, set)
                 }
-                activeSetRow(i, entry)
+                if entry.done {
+                    completedEntryRow(i)
+                } else {
+                    activeSetRow(i, entry)
+                }
             }
             .padding(.top, 12)
         }
@@ -104,29 +108,54 @@ struct SessionView: View {
     }
 
     private func activeSetRow(_ i: Int, _ entry: ActiveSession.Entry) -> some View {
-        HStack(spacing: 12) {
-            Text("\(entry.sets.count + 1)")
+        VStack(alignment: .trailing, spacing: 10) {
+            HStack(spacing: 12) {
+                Text("\(entry.sets.count + 1)")
+                    .font(.lift(13))
+                    .frame(width: 26, alignment: .leading)
+
+                valueCell(Format.kg(entry.pKg), unit: "kg") {
+                    ui.sheet = .picker(entryIndex: i, field: .kg)
+                }
+                valueCell("\(entry.pReps)", unit: "reps") {
+                    ui.sheet = .picker(entryIndex: i, field: .reps)
+                }
+
+                Checkmark()
+                    .stroke(theme.ink, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+                    .frame(width: 15, height: 12)
+                    .frame(width: 46, height: 46)
+                    .overlay(Circle().stroke(theme.ink, lineWidth: 1))
+                    .contentShape(Circle())
+                    .onTapGesture { store.confirmSet(i) }
+            }
+
+            Text("done")
                 .font(.lift(13))
-                .frame(width: 26, alignment: .leading)
-
-            valueCell(Format.kg(entry.pKg), unit: "kg") {
-                ui.sheet = .picker(entryIndex: i, field: .kg)
-            }
-            valueCell("\(entry.pReps)", unit: "reps") {
-                ui.sheet = .picker(entryIndex: i, field: .reps)
-            }
-
-            Checkmark()
-                .stroke(theme.ink, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-                .frame(width: 15, height: 12)
-                .frame(width: 46, height: 46)
-                .overlay(Circle().stroke(theme.ink, lineWidth: 1))
-                .contentShape(Circle())
-                .onTapGesture { store.confirmSet(i) }
+                .foregroundStyle(theme.faint)
+                .underlined(theme.faint)
+                .contentShape(Rectangle())
+                .onTapGesture { store.setEntryDone(i, true) }
         }
         .padding(.top, 14)
         .padding(.bottom, 2)
         .overlay(alignment: .top) { theme.line.frame(height: 1) }
+    }
+
+    private func completedEntryRow(_ i: Int) -> some View {
+        HStack {
+            Text("exercise done")
+                .font(.lift(13))
+                .foregroundStyle(theme.faint)
+            Spacer()
+            Text("+ add set")
+                .font(.lift(13))
+                .underlined(theme.ink)
+        }
+        .padding(.vertical, 14)
+        .overlay(alignment: .top) { theme.line.frame(height: 1) }
+        .contentShape(Rectangle())
+        .onTapGesture { store.setEntryDone(i, false) }
     }
 
     private func valueCell(_ value: String, unit: String, tap: @escaping () -> Void) -> some View {

@@ -80,6 +80,14 @@ extension LiftStore {
         saveActive()
     }
 
+    func setEntryDone(_ i: Int, _ done: Bool, at date: Date = Date()) {
+        guard var act = active, act.entries.indices.contains(i) else { return }
+        act.entries[i].isDone = done
+        act.recordActivity(at: date)
+        active = act
+        saveActive()
+    }
+
     func sessionElapsed(at date: Date) -> TimeInterval {
         active?.elapsed(at: date) ?? 0
     }

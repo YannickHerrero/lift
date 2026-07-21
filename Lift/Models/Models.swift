@@ -45,6 +45,19 @@ struct ActiveSession: Codable, Equatable {
         /// Pending values shown in the kg / reps input cells.
         var pKg: Double
         var pReps: Int
+        /// Optional so active sessions saved by older app versions still decode.
+        var isDone: Bool?
+
+        init(exId: String, sets: [WorkoutSet], pKg: Double, pReps: Int,
+             isDone: Bool? = false) {
+            self.exId = exId
+            self.sets = sets
+            self.pKg = pKg
+            self.pReps = pReps
+            self.isDone = isDone
+        }
+
+        var done: Bool { isDone == true }
     }
 
     var startedAt: Date
