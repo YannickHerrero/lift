@@ -43,6 +43,9 @@ struct PickerSheet: View {
             let current = currentValue
             selected = values.firstIndex { $0 >= current } ?? values.count - 1
         }
+        .onChange(of: selected) { _, _ in
+            saveSelection()
+        }
     }
 
     private var wheel: some View {
@@ -117,14 +120,17 @@ struct PickerSheet: View {
         return "set \(e.sets.count + 1) · \(store.exerciseName(e.exId))"
     }
 
-    private func done() {
-        if let i = selected, let v = values[safe: i] {
-            if field == .kg {
-                store.updateEntry(entryIndex, kg: v)
-            } else {
-                store.updateEntry(entryIndex, reps: Int(v))
-            }
+    private func saveSelection() {
+        guard let i = selected, let v = values[safe: i] else { return }
+        if field == .kg {
+            store.updateEntry(entryIndex, kg: v)
+        } else {
+            store.updateEntry(entryIndex, reps: Int(v))
         }
+    }
+
+    private func done() {
+        saveSelection()
         ui.sheet = nil
     }
 }
