@@ -98,10 +98,7 @@ struct PickerSheet: View {
 
     private var values: [Double] {
         if field == .kg {
-            let step = store.prefs.kgStep
-            let max = Double(store.prefs.wheelMaxKg)
-            return Array(stride(from: 0, through: max + 0.001, by: step))
-                .map { ($0 * 100).rounded() / 100 }
+            return store.prefs.weightPickerValues
         }
         return (1...50).map(Double.init)
     }

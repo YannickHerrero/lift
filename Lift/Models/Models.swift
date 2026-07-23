@@ -30,9 +30,15 @@ enum AppTheme: String, Codable {
 }
 
 struct Prefs: Codable, Equatable {
-    var kgStep: Double = 2.5
+    var kgStep: Double = 1
     var wheelMaxKg: Int = 250
     var autoRest: Bool = false
+
+    var weightPickerValues: [Double] {
+        guard kgStep > 0, wheelMaxKg >= 0 else { return [] }
+        return Array(stride(from: 0, through: Double(wheelMaxKg) + 0.001, by: kgStep))
+            .map { ($0 * 100).rounded() / 100 }
+    }
 }
 
 /// An in-progress session. Persisted separately so it survives relaunch.

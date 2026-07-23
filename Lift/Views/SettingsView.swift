@@ -26,6 +26,7 @@ struct SettingsView: View {
                     .padding(.top, 30)
 
                     prefRow("kg step", options: [
+                        option("1", isOn: store.prefs.kgStep == 1) { setPref { $0.kgStep = 1 } },
                         option("1.25", isOn: store.prefs.kgStep == 1.25) { setPref { $0.kgStep = 1.25 } },
                         option("2.5", isOn: store.prefs.kgStep == 2.5) { setPref { $0.kgStep = 2.5 } },
                     ])
